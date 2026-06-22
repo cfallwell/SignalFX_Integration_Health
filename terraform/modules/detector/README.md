@@ -67,7 +67,8 @@ The templates are sourced from the root `detector_messages/` directory and loade
 |------|------|-------------|
 | `detector_id` | string | The ID of the created detector |
 | `detector_url` | string | The URL of the detector in the UI |
-| `rule_label_to_name` | map(string) | Map of rule label to rule ID |
+| `label_resolutions` | map(number) | Map of detect_label to evaluation resolution (ms), populated after apply |
+| `rule_labels` | list(string) | Detect labels wired up on this detector, in order |
 
 ## Notification Recipients
 

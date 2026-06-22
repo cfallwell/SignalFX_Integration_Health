@@ -8,9 +8,14 @@ output "detector_url" {
   description = "The URL of the detector in Splunk Observability Cloud"
 }
 
-output "detector_rules" {
-  value       = module.detector.rule_label_to_name
-  description = "Map of rule label to rule ID"
+output "detector_rule_labels" {
+  value       = module.detector.rule_labels
+  description = "Detect labels wired up on the detector, in order"
+}
+
+output "detector_label_resolutions" {
+  value       = module.detector.label_resolutions
+  description = "Map of detect_label to evaluation resolution in milliseconds, populated after apply"
 }
 
 output "synthetics_test_id" {

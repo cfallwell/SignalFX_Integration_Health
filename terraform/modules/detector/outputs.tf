@@ -8,9 +8,12 @@ output "detector_url" {
   description = "The URL of the detector in Splunk Observability Cloud"
 }
 
-output "rule_label_to_name" {
-  value = {
-    for rule in signalfx_detector.detector.rule : rule.detect_label => rule.id
-  }
-  description = "Map of rule detect_label to rule name/id"
+output "label_resolutions" {
+  value       = signalfx_detector.detector.label_resolutions
+  description = "Map of detect_label to evaluation resolution in milliseconds, as reported by the SignalFx API after detector creation"
+}
+
+output "rule_labels" {
+  value       = [for r in signalfx_detector.detector.rule : r.detect_label]
+  description = "List of detect_labels wired up on this detector, in order"
 }
