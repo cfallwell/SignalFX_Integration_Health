@@ -1,0 +1,28 @@
+{
+  "gauge": [
+    {
+      "metric": "custom.aws.integration.enabled",
+      "dimensions": {
+        "primaryId": "aws-integration-001",
+        "primaryIdType": "integrationId",
+        "integrationId": "aws-integration-001",
+        "integrationName": "aws-prod",
+        "awsAccountId": "111122223333",
+        "source": "synthetic-aws-integration-health"
+      },
+      "value": 1
+    },
+    {
+      "metric": "custom.aws.integration.enabled",
+      "dimensions": {
+        "primaryId": "aws-integration-002",
+        "primaryIdType": "integrationId",
+        "integrationId": "aws-integration-002",
+        "integrationName": "aws-dev",
+        "awsAccountId": "444455556666",
+        "source": "synthetic-aws-integration-health"
+      },
+      "value": 0
+    }
+  ]
+}

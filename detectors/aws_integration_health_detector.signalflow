@@ -1,0 +1,262 @@
+# ============================================================
+# AWS Integration Health + AWS Logs Health
+#
+# Alert rules:
+#   1. AWS integration auth failure
+#   2. AWS integration disabled
+#   3. AWS integration stale / no datapoints
+#   4. AWS API exceptions - org scoped
+#   5. Logs stopped by token
+#
+# Native metrics:
+#   sf.org.num.awsServiceAuthErrorCount
+#   sf.org.datainventory.latestTimestamp
+#   sf.org.num.awsServiceCallCountExceptions
+#   sf.org.log.grossMessagesReceivedByToken
+#
+# Custom metrics emitted by Synthetics or external poller:
+#   custom.aws.integration.enabled
+#   custom.aws.integration.inventory.present
+#
+# Reporting behavior:
+#   - Report integrationId when present.
+#   - For logs, native org metrics provide tokenId instead of integrationId.
+#   - No static integration ID list.
+#   - No static token ID list.
+#
+# Recommended detector settings:
+#   Resolution: 1 minute
+#   Max delay: 10-15 minutes
+# ============================================================
+
+
+# ----------------------------
+# Tunables
+# ----------------------------
+
+auth_error_window = '5m'
+api_exception_window = '10m'
+log_window = '60m'
+
+stale_threshold_minutes = 90
+
+# At 1-minute resolution:
+#   1440  = 24 hours
+#   4320  = 3 days
+#   10080 = 7 days
+# This keeps stopped streams visible long enough for the detector to alert
+# after data stops arriving.
+stopped_stream_max_extrapolations = 10080
+
+custom_metric_source = 'synthetic-aws-integration-health'
+
+
+# ============================================================
+# A - AWS auth failures by integration
+# ============================================================
+#
+# Metric:
+#   sf.org.num.awsServiceAuthErrorCount
+#
+# Preserved dimensions:
+#   integrationId
+#   namespace
+#   clientInterface
+#   method
+#
+# Alert message variables:
+#   {{dimensions.integrationId}}
+#   {{dimensions.namespace}}
+#   {{dimensions.clientInterface}}
+#   {{dimensions.method}}
+#   {{inputs.A.value}}
+
+A = data(
+    'sf.org.num.awsServiceAuthErrorCount',
+    rollup='sum',
+    extrapolation='zero',
+    maxExtrapolations=30,
+    resolution=60000
+).sum(
+    by=['integrationId', 'namespace', 'clientInterface', 'method']
+).sum(
+    over=auth_error_window
+).publish(
+    label='A'
+)
+
+detect(when(A > 0, '1m')).publish(
+    'AWS integration auth failure'
+)
+
+
+# ============================================================
+# B - AWS integration disabled - synthetic/API exact state
+# ============================================================
+#
+# Custom metric:
+#   custom.aws.integration.enabled
+#
+# Expected values:
+#   1 = enabled
+#   0 = disabled
+#
+# Preserved dimensions:
+#   primaryId
+#   primaryIdType
+#   integrationId
+#   integrationName
+#   awsAccountId
+#
+# Alert message variables:
+#   {{dimensions.primaryId}}
+#   {{dimensions.primaryIdType}}
+#   {{dimensions.integrationId}}
+#   {{dimensions.integrationName}}
+#   {{dimensions.awsAccountId}}
+#   {{inputs.B.value}}
+
+B = data(
+    'custom.aws.integration.enabled',
+    filter=filter('source', custom_metric_source),
+    rollup='average',
+    extrapolation='last_value',
+    maxExtrapolations=stopped_stream_max_extrapolations,
+    resolution=60000
+).min(
+    by=['primaryId', 'primaryIdType', 'integrationId', 'integrationName', 'awsAccountId']
+).publish(
+    label='B'
+)
+
+detect(when(B < 1, '10m')).publish(
+    'AWS integration disabled'
+)
+
+
+# ============================================================
+# C - AWS integration stale / no datapoints
+# ============================================================
+#
+# Metric:
+#   sf.org.datainventory.latestTimestamp
+#
+# Preserved dimension:
+#   integrationId
+#
+# The max(by=['integrationId']) aggregation means any active AWS service
+# or region keeps the integration considered alive.
+#
+# Assumption:
+#   sf.org.datainventory.latestTimestamp is epoch milliseconds.
+#   time() returns epoch milliseconds.
+#
+# If the customer realm shows latestTimestamp as epoch seconds instead,
+# change:
+#   / 60000
+# to:
+#   / 60
+#
+# Alert message variables:
+#   {{dimensions.integrationId}}
+#   {{inputs.C.value}}
+
+C_latest_ts = data(
+    'sf.org.datainventory.latestTimestamp',
+    filter=filter('type', 'AWS'),
+    extrapolation='last_value',
+    maxExtrapolations=stopped_stream_max_extrapolations,
+    resolution=60000
+).max(
+    by=['integrationId']
+)
+
+C = ((time() - C_latest_ts) / 60000).publish(
+    label='C'
+)
+
+detect(when(C > stale_threshold_minutes, '15m')).publish(
+    'AWS integration stale / no datapoints'
+)
+
+
+# ============================================================
+# D - AWS API exceptions, org/API scoped
+# ============================================================
+#
+# Metric:
+#   sf.org.num.awsServiceCallCountExceptions
+#
+# This native metric does not include integrationId or tokenId.
+#
+# Preserved dimensions:
+#   namespace
+#   method
+#   location
+#
+# Alert message variables:
+#   {{dimensions.namespace}}
+#   {{dimensions.method}}
+#   {{dimensions.location}}
+#   {{inputs.D.value}}
+
+D = data(
+    'sf.org.num.awsServiceCallCountExceptions',
+    rollup='sum',
+    extrapolation='zero',
+    maxExtrapolations=30,
+    resolution=60000
+).sum(
+    by=['namespace', 'method', 'location']
+).sum(
+    over=api_exception_window
+).publish(
+    label='D'
+)
+
+detect(when(D > 0, '2m')).publish(
+    'AWS API exceptions - org scoped'
+)
+
+
+# ============================================================
+# E - Logs stopped by token
+# ============================================================
+#
+# Metric:
+#   sf.org.log.grossMessagesReceivedByToken
+#
+# No static token filter is used.
+#
+# This dynamically evaluates every tokenId that has an active or recently
+# active log metric time series for this org.
+#
+# Preserved dimension:
+#   tokenId
+#
+# Alert message variables:
+#   {{dimensions.tokenId}}
+#   {{inputs.E.value}}
+#
+# Important:
+#   This is not AWS-specific unless the customer's AWS logs use dedicated
+#   tokens or token metadata is handled outside this detector.
+#   Because integrationId is not present, tokenId is the fallback identifier.
+
+E = data(
+    'sf.org.log.grossMessagesReceivedByToken',
+    rollup='sum',
+    extrapolation='zero',
+    maxExtrapolations=stopped_stream_max_extrapolations,
+    resolution=60000
+).sum(
+    by=['tokenId']
+).sum(
+    over=log_window
+).publish(
+    label='E'
+)
+
+detect(when(E < 1, '15m')).publish(
+    'Logs stopped by token'
+)

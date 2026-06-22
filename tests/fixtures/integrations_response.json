@@ -1,0 +1,24 @@
+{
+  "integrations": [
+    {
+      "id": "aws-integration-001",
+      "name": "aws-prod",
+      "type": "AWSCloudWatch",
+      "enabled": true,
+      "roleArn": "arn:aws:iam::111122223333:role/splunk-o11y"
+    },
+    {
+      "id": "aws-integration-002",
+      "name": "aws-dev",
+      "type": "AWSCloudWatch",
+      "enabled": false,
+      "accountId": "444455556666"
+    },
+    {
+      "id": "pagerduty-001",
+      "name": "pagerduty",
+      "type": "PagerDuty",
+      "enabled": true
+    }
+  ]
+}
