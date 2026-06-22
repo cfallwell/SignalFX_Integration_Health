@@ -39,7 +39,7 @@ resource "synthetics_create_api_check_v2" "aws_integration_health" {
       setup {
         name     = "Build metric payload"
         type     = "javascript"
-        code     = var.javascript_file_path
+        code     = var.javascript_code
         variable = "metricPayload"
       }
 

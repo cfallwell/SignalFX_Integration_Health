@@ -62,8 +62,8 @@ variable "custom_properties" {
   description = "Custom properties to attach to the test as key-value pairs"
 }
 
-variable "javascript_file_path" {
+variable "javascript_code" {
   type        = string
-  description = "Path to the JavaScript payload builder file (loaded via file())"
+  description = "JavaScript code for the payload builder (typically loaded via file() function)"
 }
 

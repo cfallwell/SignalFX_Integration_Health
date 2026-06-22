@@ -42,17 +42,17 @@ module "synthetics" {
   count  = var.enable_synthetics ? 1 : 0
   source = "../../modules/synthetics_api_test"
 
-  name                 = "AWS integration health - Synthetic API test"
-  realm                = var.realm
-  o11y_api_token       = var.o11y_api_token
-  o11y_ingest_token    = var.o11y_ingest_token
-  frequency_minutes    = 5
-  locations            = ["aws-us-east-1"]
-  enabled              = true
-  device_id            = 1
-  scheduling_strategy  = "round_robin"
-  custom_properties    = {}
-  javascript_file_path = file("${path.module}/../../../synthetics/build_metric_payload.js")
+  name                = "AWS integration health - Synthetic API test"
+  realm               = var.realm
+  o11y_api_token      = var.o11y_api_token
+  o11y_ingest_token   = var.o11y_ingest_token
+  frequency_minutes   = 5
+  locations           = ["aws-us-east-1"]
+  enabled             = true
+  device_id           = 1
+  scheduling_strategy = "round_robin"
+  custom_properties   = {}
+  javascript_code     = file("${path.module}/../../../synthetics/build_metric_payload.js")
 }
 
 output "detector_id" {
