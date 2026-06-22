@@ -167,5 +167,6 @@ See `../../examples/minimal/main.tf` for a complete example.
 
 - The JavaScript payload builder (`synthetics/build_metric_payload.js`) is loaded at plan time via `file()` and embedded in the test definition.
 - The JavaScript step only transforms the response from request 1; it does not make additional HTTP requests.
-- Handlebars template syntax (`{{response.body}}`, `{{metricPayload}}`) is preserved and expanded by Synthetics at runtime.
+- Handlebars template syntax (`{{response.body}}`, `{{custom.metricPayload}}`) is preserved and expanded by Synthetics at runtime. Inside JavaScript steps, refer to saved variables directly as `custom.<name>` (no braces) — `{{custom.<name>}}` only works outside JS.
+- Custom variables are READ-ONLY inside the V8 JS step. Don't write `custom.x = ...`; let the step's `variable = "..."` attribute capture the final returned expression instead.
 - The `custom_properties` map allows you to attach custom metadata key-value pairs to the test for filtering and organization.

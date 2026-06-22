@@ -145,8 +145,32 @@ function enabledValue(integration) {
 }
 
 var source = 'synthetic-aws-integration-health';
+
+/*
+  In Splunk Synthetics V2, `custom.<name>` is injected by the runtime as a
+  read-only object containing any custom variables saved by prior setup steps.
+  Reading it works. Writing to it (`custom.x = ...`) throws TypeError and
+  crashes the step. To save this step's output, set `variable = "metricPayload"`
+  on the JavaScript setup step in Terraform and let the V8 runtime save the
+  final returned expression.
+*/
+
+if (typeof custom === 'undefined' || custom === null) {
+  throw new Error('custom namespace is not defined; verify this JS step runs inside a Splunk Synthetics API check V2');
+}
+
 var raw = custom.integrationsResponse;
-var parsed = JSON.parse(raw);
+if (raw === undefined || raw === null || raw === '') {
+  throw new Error('custom.integrationsResponse is empty; verify the prior save step ran and the GET /v2/integration request returned a body');
+}
+
+var parsed;
+try {
+  parsed = JSON.parse(raw);
+} catch (parseErr) {
+  throw new Error('Failed to JSON.parse custom.integrationsResponse: ' + parseErr.message);
+}
+
 var integrations = normalizeIntegrationList(parsed);
 var gauge = [];
 
@@ -197,10 +221,7 @@ var metricPayload = JSON.stringify({
   'gauge': gauge
 });
 
-/*
-  Some Synthetics runtimes support direct assignment to custom variables,
-  while the documented pattern is to save the JavaScript return value.
-  Keep both patterns available.
-*/
-custom.metricPayload = metricPayload;
+// Final expression — captured by the setup step's `variable = "metricPayload"`
+// and exposed to subsequent requests as {{custom.metricPayload}}.
 metricPayload;
+

@@ -63,7 +63,7 @@ resource "synthetics_create_api_check_v2" "aws_integration_health" {
           "Content-Type" = "application/json"
           "X-SF-TOKEN"   = var.o11y_ingest_token
         }
-        body = "{{metricPayload}}"
+        body = "{{custom.metricPayload}}"
       }
 
       # Validation: Assert HTTP 200
