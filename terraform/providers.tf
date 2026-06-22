@@ -4,6 +4,7 @@ provider "signalfx" {
 }
 
 provider "synthetics" {
-  api_key = var.o11y_api_token
-  api_url = "https://api.${var.realm}.observability.splunkcloud.com"
+  product = "observability"
+  realm   = var.realm
+  apikey  = var.o11y_api_token
 }

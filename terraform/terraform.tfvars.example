@@ -1,0 +1,168 @@
+# Terraform Variables File - AWS Integration Health Detector + Synthetics
+#
+# This file provides example values for all input variables.
+# Copy to terraform.tfvars and replace placeholder values with your actual configuration.
+#
+# SECURITY: Never commit the populated terraform.tfvars to version control.
+# Instead, use environment variables (TF_VAR_realm, TF_VAR_auth_token, etc.)
+# or use terraform.tfvars in .gitignore (it already is).
+
+# ===========================================================================
+# REQUIRED: Splunk Observability Cloud Connection
+# ===========================================================================
+
+# Splunk Observability Cloud realm (e.g., 'us0', 'us1', 'eu0', 'eu1')
+# This determines the API and ingest endpoints the detector and synthetics use.
+realm = "us0"
+
+# API token with permissions to create and manage detectors
+# Required for the signalfx provider to deploy the detector
+# Consider using environment variable: export TF_VAR_auth_token="..."
+auth_token = "REPLACE_WITH_DETECTOR_API_TOKEN"
+
+# ===========================================================================
+# REQUIRED (if enable_synthetics = true): Synthetics API Tokens
+# ===========================================================================
+
+# API token for reading AWS integrations from /v2/integration endpoint
+# Used by Synthetics step 1 (GET request) to fetch the integration list
+# Consider using environment variable: export TF_VAR_o11y_api_token="..."
+o11y_api_token = "REPLACE_WITH_SYNTHETICS_API_TOKEN"
+
+# Ingest token for posting custom metrics to /v2/datapoint endpoint
+# Used by Synthetics step 3 (POST request) to send custom.aws.integration.* metrics
+# Consider using environment variable: export TF_VAR_o11y_ingest_token="..."
+o11y_ingest_token = "REPLACE_WITH_SYNTHETICS_INGEST_TOKEN"
+
+# ===========================================================================
+# OPTIONAL: Detector Configuration
+# ===========================================================================
+
+# Name of the detector (default: "AWS integration health")
+# detector_name = "AWS integration health"
+
+# Description of the detector
+# detector_description = "Monitors AWS integration health in Splunk Observability Cloud using native metrics and custom integration inventory data from Synthetics or external poller."
+
+# Tags to apply to the detector (default: empty list)
+# detector_tags = ["aws", "integration-health", "nuskin"]
+
+# Teams authorized to view and edit the detector (default: empty list)
+# detector_teams = ["Platform Team", "SRE Team"]
+
+# Teams authorized to write (edit) the detector (default: empty list)
+# detector_authorized_writer_teams = []
+
+# Users authorized to write (edit) the detector (default: empty list)
+# detector_authorized_writer_users = []
+
+# Time zone for the detector (default: "UTC")
+# detector_time_zone = "UTC"
+
+# Maximum delay in seconds for the detector to alert (default: 900 = 15 minutes)
+# Recommended: 10-15 minutes (600-900 seconds) to allow for data propagation and synthetics frequency
+# detector_max_delay = 900
+
+# Minimum delay in seconds (optional, default: null)
+# detector_min_delay = null
+
+# ===========================================================================
+# OPTIONAL: Per-Rule Alert Severity Overrides
+# ===========================================================================
+
+# Override default severity levels for each rule (default: see below)
+# Valid values: "Critical", "Major", "Minor", "Warning", "Info"
+# The defaults below are recommended; customize as needed for your organization.
+#
+# rule_severity_overrides = {
+#   "AWS integration auth failure"           = "Critical"
+#   "AWS integration disabled"               = "Critical"
+#   "AWS integration stale / no datapoints"  = "Major"
+#   "AWS API exceptions - org scoped"        = "Major"
+#   "Logs stopped by token"                  = "Major"
+# }
+
+# ===========================================================================
+# OPTIONAL: Per-Rule Notification Recipients
+# ===========================================================================
+
+# Map of rule label to list of notification recipients
+# Leave a rule's list empty [] to disable notifications for that rule
+# Supported formats:
+#   - Email: "Email,recipient@example.com"
+#   - Slack: "Slack,#channel-name" or "Slack,@username"
+#   - PagerDuty: "PagerDuty,<credentialId>" (get credentialId from Splunk UI)
+#   - Webhook: "Webhook,https://example.com/webhook"
+#   - Splunk On-Call: "Splunk On-Call,<credentialId>"
+#   - OpsGenie: "OpsGenie,<credentialId>"
+#   - VictorOps: "VictorOps,<credentialId>"
+#
+rule_notifications = {
+  "AWS integration auth failure" = [
+    # "Email,platform-oncall@example.com",
+    # "Slack,#aws-alerts"
+  ]
+  "AWS integration disabled" = [
+    # "Email,platform-oncall@example.com"
+  ]
+  "AWS integration stale / no datapoints" = [
+    # "Email,platform-oncall@example.com"
+  ]
+  "AWS API exceptions - org scoped" = [
+    # "Email,platform-oncall@example.com"
+  ]
+  "Logs stopped by token" = [
+    # "Email,platform-oncall@example.com"
+  ]
+}
+
+# ===========================================================================
+# OPTIONAL: Synthetics Configuration
+# ===========================================================================
+
+# Enable or disable the Splunk Synthetics API test
+# Set to false to use the external Python poller instead (Option B)
+# enable_synthetics = true
+
+# Name of the Synthetics test (default: "AWS integration health - Synthetic API test")
+# synthetics_test_name = "AWS integration health - Synthetic API test"
+
+# Frequency of the Synthetics test in minutes (default: 5)
+# Must be between 1 and 1440 (one day)
+# synthetics_frequency_minutes = 5
+
+# Synthetics location IDs where the test runs (default: ["aws-us-east-1"])
+# To find available location IDs, log into Splunk Observability > Synthetics > Locations
+# Common locations:
+#   - "aws-us-east-1"       (AWS US East N. Virginia)
+#   - "aws-us-west-2"       (AWS US West Oregon)
+#   - "aws-eu-west-1"       (AWS EU Ireland)
+#   - "aws-ap-southeast-2"  (AWS Asia Pacific Sydney)
+#   - "gcp-us-central1"     (Google Cloud US Central)
+#   - "azure-eastus"        (Azure East US)
+#
+# synthetics_locations = ["aws-us-east-1"]
+
+# Enable or disable the Synthetics test after creation (default: true)
+# synthetics_enabled = true
+
+# Splunk Synthetics device ID for the test (default: 1)
+# Must be a valid device ID in your realm. To find your device ID:
+#   1. Log into Splunk Observability Cloud
+#   2. Navigate to Synthetics > Devices
+#   3. Note the device ID for the device you wish to use
+#   4. If unsure, contact your Splunk account representative
+# Most organizations use device ID 1.
+# synthetics_device_id = 1
+
+# Scheduling strategy for the Synthetics test (default: "round_robin")
+# Options: "round_robin" distributes test runs across locations
+# synthetics_scheduling_strategy = "round_robin"
+
+# Custom properties to attach to the Synthetics test as key-value pairs (default: {})
+# Useful for metadata, filtering, and organization in the Synthetics UI
+# synthetics_custom_properties = {
+#   "team"       = "platform",
+#   "service"    = "integration-health",
+#   "environment" = "production"
+# }

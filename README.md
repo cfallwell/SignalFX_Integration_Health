@@ -71,7 +71,31 @@ The detector covers five alert rules:
 
 ## Deployment options
 
-### Option A: Splunk Synthetics API test
+### Option A: Terraform (Recommended)
+
+Use Terraform to deploy the entire stack as code:
+
+```bash
+cd terraform
+terraform init
+terraform plan
+terraform apply
+```
+
+This creates:
+- The SignalFlow detector with all five rules and message templates
+- (Optionally) the Synthetics API test for emitting custom metrics
+- Notification channels and alert routes
+
+See [terraform/README.md](terraform/README.md) for full documentation, including:
+- Provider versions and configuration
+- Required and optional variables
+- Token management
+- Troubleshooting
+
+This is the **recommended path** for customers who want repeatable, version-controlled deployments.
+
+### Option B: Splunk Synthetics API test
 
 Use the Synthetics API test to:
 
@@ -80,9 +104,9 @@ Use the Synthetics API test to:
 3. Run `synthetics/build_metric_payload.js` as a **Save return value from JavaScript** step and name the saved variable `metricPayload`.
 4. `POST {{custom.metricPayload}}` to `https://ingest.<REALM>.observability.splunkcloud.com/v2/datapoint`.
 
-This is the most self-contained option inside Splunk Observability Cloud.
+This is the most self-contained option inside Splunk Observability Cloud but requires manual UI steps. Terraform automates this process (see Option A above).
 
-### Option B: External poller
+### Option C: External poller
 
 Run the Python poller on a schedule using Lambda, Kubernetes CronJob, cron, GitHub Actions, or another scheduler.
 
@@ -95,7 +119,7 @@ python3 poller/aws_integration_health_poller.py --dry-run
 python3 poller/aws_integration_health_poller.py
 ```
 
-The poller queries all integrations, filters AWS integrations, builds custom datapoints, and posts them to `/v2/datapoint`.
+The poller queries all integrations, filters AWS integrations, builds custom datapoints, and posts them to `/v2/datapoint`. This is a good alternative if you prefer not to use Synthetics.
 
 ## Detector install
 

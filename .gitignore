@@ -1,0 +1,59 @@
+# Terraform state files
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+
+# Note: .terraform.lock.hcl SHOULD be committed so providers are pinned across
+# runs. Do not add it to this list.
+
+# Terraform variable files (keep examples)
+*.tfvars
+!*.tfvars.example
+!terraform.tfvars.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+.venv
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Test coverage
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Environment
+.env.local
+.env.*.local

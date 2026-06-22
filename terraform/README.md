@@ -33,7 +33,7 @@ This directory contains Terraform configuration to deploy the AWS integration he
 ## Provider Versions
 
 - **splunk-terraform/signalfx**: ~> 9.14
-- **splunkdev/synthetics**: ~> 1.2
+- **splunk/synthetics**: ~> 2.0
 
 These are pinned in `versions.tf` to ensure reproducible deployments.
 
@@ -298,6 +298,96 @@ To upgrade to a new version of the detector or Synthetics test:
 
 Terraform will handle updates to the detector rules, message templates, and Synthetics test configuration.
 
+## Monitoring the Producer
+
+### Critical Operational Consideration
+
+The Synthetics API test (or external poller) is itself a single point of failure for the disabled-state custom metric. If the Synthetics test stops running or fails, the detector will continue to alert based on the last received custom metric values (because of `extrapolation='last_value'` in the SignalFlow detector, which preserves the last known state). This means:
+
+- If `custom.aws.integration.enabled` last reported a value of `0` (disabled), but the test then fails, the detector will continue to fire the "AWS integration disabled" alert indefinitely, even if the integration was re-enabled.
+- To prevent false alerts from producer failure, you must monitor the producer itself separately.
+
+### Monitoring the Synthetics Test
+
+If you are using the Synthetics API test (Option 1), create a secondary detector to alert on Synthetics test failures:
+
+1. **Check test status in the UI**:
+   - Log into Splunk Observability Cloud
+   - Navigate to **Synthetics**
+   - Open your test and check the test history and last run timestamp
+   - If the test has not run in the last `synthetics_frequency_minutes + 5 minutes`, investigate
+
+2. **Create a companion detector** (optional but recommended):
+   - Create a new detector subscribing to the metric `sf.synthetics.test.runs.count` (or similar)
+   - Filter to your test's name: `test_name = "<synthetics_test_name>"`
+   - Alert if the count is 0 in the last 10 minutes
+   - Severity: `Critical` (producer failure is a blocker)
+
+3. **Check test logs**:
+   - In the Synthetics UI, review the test's step results
+   - Check for authentication errors, timeout errors, or JSON parse failures
+   - Verify the test has executed at least once per frequency
+
+### Monitoring the External Poller
+
+If you are using the external Python poller (Option 2, `enable_synthetics = false`):
+
+1. **Set up CloudWatch alarms** (if running on Lambda):
+   - Create an alarm on Lambda function errors
+   - Create an alarm on Lambda invocation count (ensure the function runs on schedule)
+
+2. **Set up monitoring for Kubernetes CronJob** (if running on Kubernetes):
+   - Monitor the CronJob's `status.lastSuccessfulTime`
+   - Alert if the last successful run was more than `5 minutes + threshold` ago
+
+3. **Set up monitoring for Cron** (if running on Linux/macOS):
+   - Use a wrapper script that checks the last run time (stored in a file or syslog)
+   - Alert if the last run was more than `5 minutes + threshold` ago
+
+## Production Follow-ups and Enhancements
+
+The following items are acknowledged as out-of-scope for the initial Phase 1-5 deployment but are recommended for production-grade deployments:
+
+### 1. Runbook for Token-to-AWS-Account Mapping
+
+If the "Logs stopped by token" rule fires, the alert will include `{{dimensions.tokenId}}` as the identifier (since the native log metric `sf.org.log.grossMessagesReceivedByToken` is token-scoped, not integration-scoped).
+
+**Recommendation**: Create a runbook that maps token IDs to AWS log forwarding paths in your organization. This allows on-call engineers to quickly identify which AWS accounts are affected and which log sources have stopped emitting.
+
+**Example**: "Token ID `abc123def456` corresponds to AWS Account `123456789012` log stream `aws:cloudtrail:...`"
+
+### 2. Account Aliases as Dimensions
+
+The `custom.aws.integration.enabled` metric includes `awsAccountId` extracted from the integration response or IAM role ARN. However, some organizations may prefer human-friendly account aliases (e.g., "production", "staging", "sandbox") in addition to account IDs.
+
+**Recommendation**: Enhance `synthetics/build_metric_payload.js` to add an optional `awsAccountAlias` dimension by:
+- Maintaining a mapping file of account IDs to aliases
+- Looking up the account ID in the mapping and adding the alias to `commonDimensions`
+- Falling back to "unknown" if the account ID is not in the mapping
+
+### 3. Per-Integration Validation Endpoint
+
+The current implementation only checks the integration enabled/disabled state via the bulk `/v2/integration` endpoint. For richer disabled-state signal, you could also validate each integration individually using `/v2/integration/validate/{id}`.
+
+**Recommendation**: Consider a wrapper service or enhancement that:
+- Iterates over AWS integrations from `/v2/integration`
+- Calls `/v2/integration/validate/{id}` for each integration to check full health
+- Emits additional custom metrics like `custom.aws.integration.health.status` (values: `healthy`, `degraded`, `down`)
+- Routes the new metrics to a secondary detector for early warning
+
+This is particularly useful if you want to detect partial integration failures (e.g., read access working but write access failing).
+
+### 4. Self-Monitoring for the Custom-Metric Producer
+
+As noted in the "Monitoring the Producer" section above, the Synthetics test or external poller must be monitored separately to prevent false alerts when the producer fails.
+
+**Recommendation**: 
+- If using Synthetics (Option 1): Create a detector on `sf.synthetics.test.runs.count` filtered to your test name
+- If using the external poller (Option 2): Wrap the poller execution with liveness checks (e.g., write a heartbeat metric to Splunk Observability Cloud on each successful run, and alert if heartbeat stops)
+- Consider adding a secondary detector on the heartbeat metric or test run count to alert on producer failure
+
+These enhancements will transition the deployment from Phase 5 to a production-grade, fully self-monitoring solution.
+
 ## Troubleshooting
 
 ### `terraform plan` fails with "Invalid API URL"
@@ -383,4 +473,4 @@ For issues or questions, consult:
 
 - [Splunk Observability Cloud documentation](https://docs.splunk.com/Observability)
 - [Splunk Terraform provider documentation](https://registry.terraform.io/providers/splunk-terraform/signalfx/latest/docs)
-- [Splunk Synthetics provider documentation](https://registry.terraform.io/providers/splunkdev/synthetics/latest/docs)
+- [Splunk Synthetics provider documentation](https://registry.terraform.io/providers/splunk/synthetics/latest/docs)

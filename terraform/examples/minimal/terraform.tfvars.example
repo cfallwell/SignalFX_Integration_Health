@@ -1,0 +1,51 @@
+# Minimal example terraform.tfvars for AWS integration health Terraform deployment
+#
+# Copy this file to terraform.tfvars and fill in the REQUIRED values below.
+# DO NOT commit the populated terraform.tfvars to version control; use environment
+# variables instead (TF_VAR_realm, TF_VAR_auth_token, etc.) for sensitive values.
+#
+# This example shows the absolute minimum required to run: terraform apply
+# All other variables will use their defaults defined in variables.tf
+
+# ===========================================================================
+# REQUIRED: Must be filled in
+# ===========================================================================
+
+# Splunk Observability Cloud realm (e.g., 'us0', 'us1', 'eu0')
+realm = "us0"
+
+# API token with permissions to create detectors
+auth_token = "REPLACE_WITH_DETECTOR_API_TOKEN"
+
+# API token for reading AWS integrations (Synthetics step 1)
+o11y_api_token = "REPLACE_WITH_SYNTHETICS_API_TOKEN"
+
+# Ingest token for posting metrics (Synthetics step 3)
+o11y_ingest_token = "REPLACE_WITH_SYNTHETICS_INGEST_TOKEN"
+
+# ===========================================================================
+# OPTIONAL: Uncomment to customize
+# ===========================================================================
+
+# Per-rule notification recipients (empty lists mean no notifications)
+# rule_notifications = {
+#   "AWS integration auth failure"           = []
+#   "AWS integration disabled"               = []
+#   "AWS integration stale / no datapoints"  = []
+#   "AWS API exceptions - org scoped"        = []
+#   "Logs stopped by token"                  = []
+# }
+
+# Enable or disable Synthetics (default: true). Set to false to use external Python poller.
+# enable_synthetics = true
+
+# Splunk Synthetics device ID (default: 1)
+# synthetics_device_id = 1
+
+# Splunk Synthetics scheduling strategy (default: "round_robin")
+# synthetics_scheduling_strategy = "round_robin"
+
+# Custom properties for the Synthetics test
+# synthetics_custom_properties = {
+#   "team" = "platform"
+# }

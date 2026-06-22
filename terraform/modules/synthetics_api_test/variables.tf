@@ -44,13 +44,26 @@ variable "enabled" {
   description = "Enable or disable the test"
 }
 
-variable "tags" {
-  type        = list(string)
-  default     = []
-  description = "Tags to apply to the test"
+variable "device_id" {
+  type        = number
+  default     = 1
+  description = "Splunk Synthetics device ID (must be a valid device ID in your realm; typically 1 for the default device)"
+}
+
+variable "scheduling_strategy" {
+  type        = string
+  default     = "round_robin"
+  description = "Scheduling strategy for the test (e.g., 'round_robin')"
+}
+
+variable "custom_properties" {
+  type        = map(string)
+  default     = {}
+  description = "Custom properties to attach to the test as key-value pairs"
 }
 
 variable "javascript_file_path" {
   type        = string
   description = "Path to the JavaScript payload builder file (loaded via file())"
 }
+

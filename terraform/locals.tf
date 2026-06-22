@@ -3,7 +3,7 @@ locals {
   rule_messages = {
     "AWS integration auth failure" = {
       subject = "AWS auth failure - integration {{dimensions.integrationId}}"
-      body = <<-EOT
+      body    = <<-EOT
 {{#if anomalous}}
 AWS integration auth failure detected
 {{else}}
@@ -45,7 +45,7 @@ EOT
     }
     "AWS integration disabled" = {
       subject = "AWS integration disabled - {{dimensions.primaryId}}"
-      body = <<-EOT
+      body    = <<-EOT
 {{#if anomalous}}
 AWS integration is disabled
 {{else}}
@@ -90,7 +90,7 @@ EOT
     }
     "AWS integration stale / no datapoints" = {
       subject = "AWS integration stale - {{dimensions.integrationId}}"
-      body = <<-EOT
+      body    = <<-EOT
 {{#if anomalous}}
 AWS integration appears stale or no longer producing datapoints
 {{else}}
@@ -132,7 +132,7 @@ EOT
     }
     "AWS API exceptions - org scoped" = {
       subject = "AWS API exceptions - {{dimensions.namespace}} {{dimensions.method}}"
-      body = <<-EOT
+      body    = <<-EOT
 {{#if anomalous}}
 AWS API exceptions detected during cloud integration collection
 {{else}}
@@ -174,7 +174,7 @@ EOT
     }
     "Logs stopped by token" = {
       subject = "Logs stopped - token {{dimensions.tokenId}}"
-      body = <<-EOT
+      body    = <<-EOT
 {{#if anomalous}}
 Logs appear to have stopped for token {{dimensions.tokenId}}
 {{else}}
@@ -220,11 +220,11 @@ EOT
 
   # Severity defaults - can be overridden by var.rule_severity_overrides
   default_severities = {
-    "AWS integration auth failure"           = "Critical"
-    "AWS integration disabled"               = "Critical"
-    "AWS integration stale / no datapoints"  = "Major"
-    "AWS API exceptions - org scoped"        = "Major"
-    "Logs stopped by token"                  = "Major"
+    "AWS integration auth failure"          = "Critical"
+    "AWS integration disabled"              = "Critical"
+    "AWS integration stale / no datapoints" = "Major"
+    "AWS API exceptions - org scoped"       = "Major"
+    "Logs stopped by token"                 = "Major"
   }
 
   # Merge overrides into defaults

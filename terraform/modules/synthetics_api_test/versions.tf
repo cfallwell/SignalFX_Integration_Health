@@ -3,8 +3,8 @@ terraform {
 
   required_providers {
     synthetics = {
-      source  = "splunkdev/synthetics"
-      version = "~> 1.2"
+      source  = "splunk/synthetics"
+      version = "~> 2.0"
     }
   }
 }

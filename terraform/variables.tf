@@ -83,11 +83,11 @@ variable "detector_min_delay" {
 variable "rule_notifications" {
   type = map(list(string))
   default = {
-    "AWS integration auth failure"           = []
-    "AWS integration disabled"               = []
-    "AWS integration stale / no datapoints"  = []
-    "AWS API exceptions - org scoped"        = []
-    "Logs stopped by token"                  = []
+    "AWS integration auth failure"          = []
+    "AWS integration disabled"              = []
+    "AWS integration stale / no datapoints" = []
+    "AWS API exceptions - org scoped"       = []
+    "Logs stopped by token"                 = []
   }
   description = <<-EOT
     Map of rule label to list of notification recipients (e.g., "Email,sre@example.com").
@@ -99,11 +99,11 @@ variable "rule_notifications" {
 variable "rule_severity_overrides" {
   type = map(string)
   default = {
-    "AWS integration auth failure"           = "Critical"
-    "AWS integration disabled"               = "Critical"
-    "AWS integration stale / no datapoints"  = "Major"
-    "AWS API exceptions - org scoped"        = "Major"
-    "Logs stopped by token"                  = "Major"
+    "AWS integration auth failure"          = "Critical"
+    "AWS integration disabled"              = "Critical"
+    "AWS integration stale / no datapoints" = "Major"
+    "AWS API exceptions - org scoped"       = "Major"
+    "Logs stopped by token"                 = "Major"
   }
   description = "Map of rule label to severity override. If not specified, defaults are used."
 }
@@ -134,7 +134,7 @@ variable "synthetics_frequency_minutes" {
 variable "synthetics_locations" {
   type        = list(string)
   default     = ["aws-us-east-1"]
-  description = "List of Synthetics location IDs to run the test (e.g., 'aws-us-east-1'). Defaults to a single US East location."
+  description = "List of Synthetics location IDs to run the test (e.g., 'aws-us-east-1'). Common values: 'aws-us-east-1', 'aws-us-west-2', 'aws-eu-west-1', 'aws-ap-southeast-2'"
 }
 
 variable "synthetics_enabled" {
@@ -143,8 +143,20 @@ variable "synthetics_enabled" {
   description = "Enable or disable the Synthetics test"
 }
 
-variable "synthetics_tags" {
-  type        = list(string)
-  default     = []
-  description = "Tags to apply to the Synthetics test"
+variable "synthetics_device_id" {
+  type        = number
+  default     = 1
+  description = "Splunk Synthetics device ID for the test. This must be a valid device ID in your realm. Contact Splunk Observability support to confirm the device ID available in your organization."
+}
+
+variable "synthetics_scheduling_strategy" {
+  type        = string
+  default     = "round_robin"
+  description = "Scheduling strategy for the Synthetics test. 'round_robin' distributes test runs across available locations."
+}
+
+variable "synthetics_custom_properties" {
+  type        = map(string)
+  default     = {}
+  description = "Custom properties to attach to the Synthetics test as key-value pairs for metadata and filtering"
 }
