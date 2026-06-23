@@ -8,8 +8,15 @@ It includes:
 - Alert message templates for each detector rule.
 - A Synthetics API test JavaScript payload builder for custom integration-state metrics.
 - A runnable external Python poller that can be used instead of Synthetics.
+- A Terraform-managed namespace coverage chart that the API exceptions alert deep-links to.
 - Example payloads and test fixtures.
-- A project plan for moving this into a production repo.
+- A project plan documenting the MVP scope and the roadmap.
+
+## Roadmap
+
+The current release is the **MVP (Phase 1)**: full coverage of AWS integrations.
+
+A **future release (Phase 2)** will extend the same detector pattern to **GCP and Azure** integrations in Splunk Observability Cloud, using the same architecture (native org metrics + Synthetics/poller producer + Terraform-managed detector and chart). See [`project_plan.md`](project_plan.md) for the Phase 2 design questions and implementation steps.
 
 ## What this monitors
 
