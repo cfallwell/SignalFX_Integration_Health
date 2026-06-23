@@ -388,6 +388,31 @@ As noted in the "Monitoring the Producer" section above, the Synthetics test or 
 
 These enhancements will transition the deployment from Phase 5 to a production-grade, fully self-monitoring solution.
 
+## Tuning alert latency
+
+The "AWS integration disabled" rule is the most latency-sensitive of the five rules because the disabled-state signal comes from the Synthetics test, not a native metric. End-to-end latency from "integration disabled in the console" → "alert fires" is the sum of three things, all configurable:
+
+| Knob | What it controls | Default | Floor / cap |
+| ---- | ---------------- | ------- | ----------- |
+| `synthetics_frequency_minutes` | How often the Synthetics test runs | `1` | Splunk Synthetics minimum is `1` |
+| `detector_max_delay` | How long the detector waits for late datapoints before evaluating each timestamp | `300` seconds (5 minutes) | Provider cap is `900` (15 minutes) |
+| `disabled_alert_window` (SignalFlow tunable in `detectors/aws_integration_health_detector.signalflow`) | How long `B < 1` must hold continuously before firing | `'2m'` | Lower bound is 1 sample interval; set high enough to absorb a single missed Synthetics run |
+
+With the defaults shipped here, worst-case latency is roughly `synthetics_frequency_minutes + detector_max_delay/60 + disabled_alert_window` ≈ `1 + 5 + 2 = ~8 minutes`. Older defaults (`5/900/10m`) produced ~30 minute latency.
+
+Tradeoffs when lowering further:
+- **Cost**: Synthetics test runs cost per execution. At `1m` frequency that's 60 runs/hour per location. Multiply by `length(synthetics_locations)`.
+- **False positives**: A `disabled_alert_window` of `'2m'` will fire if the Synthetics test misses two consecutive samples for any non-disabled reason (e.g., Synthetics platform incident). If false positives become a problem, bump back to `'5m'` or `'10m'`.
+- **Late data**: A low `detector_max_delay` could miss legitimately late datapoints from the native org metrics (auth-failure, stale, API exceptions, logs). The native metrics arrive promptly in practice, but if the customer's realm has known ingest lag, raise `detector_max_delay` back toward `900`.
+
+To raise latency back up (less noise, slower alerts):
+```hcl
+synthetics_frequency_minutes = 5
+detector_max_delay           = 900
+# Then edit detectors/aws_integration_health_detector.signalflow:
+# disabled_alert_window = '10m'
+```
+
 ## Troubleshooting
 
 ### `terraform plan` fails with "Invalid API URL"

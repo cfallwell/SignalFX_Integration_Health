@@ -23,8 +23,8 @@ variable "o11y_ingest_token" {
 
 variable "frequency_minutes" {
   type        = number
-  default     = 5
-  description = "Frequency to run the test in minutes (1-1440)"
+  default     = 1
+  description = "Frequency to run the test in minutes (1-1440). Splunk Synthetics minimum is 1."
 
   validation {
     condition     = var.frequency_minutes > 0 && var.frequency_minutes <= 1440

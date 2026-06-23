@@ -40,6 +40,14 @@ log_window = '60m'
 
 stale_threshold_minutes = 90
 
+# How long the custom integration-enabled signal must stay below 1 before
+# the detector fires "AWS integration disabled". Lowering this fires faster
+# but increases sensitivity to a single missed Synthetics run. Pair this with
+# the synthetics_frequency_minutes Terraform variable: e.g. with the
+# Synthetics test running every minute, a 2m window means ~2 consecutive
+# samples confirm the disabled state.
+disabled_alert_window = '2m'
+
 # At 1-minute resolution:
 #   1440  = 24 hours
 #   4320  = 3 days
@@ -129,7 +137,7 @@ B = data(
     label='B'
 )
 
-detect(when(B < 1, '10m')).publish(
+detect(when(B < 1, disabled_alert_window)).publish(
     'AWS integration disabled'
 )
 

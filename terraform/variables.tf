@@ -70,8 +70,8 @@ variable "detector_time_zone" {
 
 variable "detector_max_delay" {
   type        = number
-  default     = 900
-  description = "Maximum delay in seconds (default 900 = 15 minutes; recommended 10-15 minutes)"
+  default     = 300
+  description = "Maximum delay in seconds the detector waits for late datapoints before evaluating. Lower = faster alerts, less tolerance for late-arriving data. Default 300 (5 minutes); upper bound is 900 (15 minutes)."
 }
 
 variable "detector_min_delay" {
@@ -122,8 +122,8 @@ variable "synthetics_test_name" {
 
 variable "synthetics_frequency_minutes" {
   type        = number
-  default     = 5
-  description = "Frequency of the Synthetics test in minutes"
+  default     = 1
+  description = "Frequency of the Synthetics test in minutes. Lower = faster detection of disabled integrations but more API calls and ingest. Splunk Synthetics minimum is 1."
 
   validation {
     condition     = var.synthetics_frequency_minutes > 0 && var.synthetics_frequency_minutes <= 1440
