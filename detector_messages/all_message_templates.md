@@ -34,6 +34,7 @@ State: {{anomalyState}}
 Incident ID: {{incidentId}}
 
 AWS Integration ID: {{dimensions.integrationId}}
+AWS Integration URL: https://app.<REALM>.signalfx.com/#/integrations/aws/view/{{dimensions.integrationId}}
 AWS Namespace: {{dimensions.namespace}}
 Client Interface: {{dimensions.clientInterface}}
 AWS API Method: {{dimensions.method}}
