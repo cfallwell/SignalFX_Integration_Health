@@ -37,9 +37,9 @@ The Terraform configuration has **critical provider namespace and resource name 
 
 ### terraform/main.tf (root)
 
-- **[P1] Line 16**: File path uses `file("${path.module}/../detectors/aws_integration_health_detector.signalflow")`. Since this is in the root module and the path is `../detectors/`, the file must be at `/Users/fall1972/ps-repo/Customers/nuskin_integration_checks/detectors/aws_integration_health_detector.signalflow`. This file exists and was verified.
+- **[P1] Line 16**: File path uses `file("${path.module}/../detectors/aws_integration_health_detector.signalflow")`. Since this is in the root module and the path is `../detectors/`, the file must be at `<repo-root>/detectors/aws_integration_health_detector.signalflow`. This file exists and was verified.
 
-- **[P1] Line 31**: File path uses `file("${path.module}/../synthetics/build_metric_payload.js")`. The file must be at `/Users/fall1972/ps-repo/Customers/nuskin_integration_checks/synthetics/build_metric_payload.js`. This file exists and was verified.
+- **[P1] Line 31**: File path uses `file("${path.module}/../synthetics/build_metric_payload.js")`. The file must be at `<repo-root>/synthetics/build_metric_payload.js`. This file exists and was verified.
 
 - **[P2] Line 2-17**: Module source uses relative path `./modules/detector` and `./modules/synthetics_api_test`. These are correct for calling from the same directory but note that the example at `terraform/examples/minimal/main.tf` uses relative paths `../../modules/detector` and `../../modules/synthetics_api_test`. Both will work, but ensure the deployment uses the correct paths for its context.
 

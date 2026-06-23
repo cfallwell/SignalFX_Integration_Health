@@ -2,7 +2,7 @@
 # terraform {
 #   backend "s3" {
 #     bucket         = "my-terraform-state"
-#     key            = "nuskin-aws-integration-health/terraform.tfstate"
+#     key            = "aws-integration-health/terraform.tfstate"
 #     region         = "us-east-1"
 #     encrypt        = true
 #     dynamodb_table = "terraform-locks"

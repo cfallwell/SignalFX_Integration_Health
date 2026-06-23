@@ -144,7 +144,7 @@ For a production deployment with remote state:
 ```bash
 # Initialize with S3 backend
 terraform init -backend-config="bucket=my-state-bucket" \
-               -backend-config="key=nuskin/terraform.tfstate" \
+               -backend-config="key=aws-integration-health/terraform.tfstate" \
                -backend-config="region=us-east-1"
 
 # Plan and apply
@@ -158,7 +158,7 @@ Update `main.tf` to include a backend block:
 terraform {
   backend "s3" {
     bucket         = "my-state-bucket"
-    key            = "nuskin/terraform.tfstate"
+    key            = "aws-integration-health/terraform.tfstate"
     region         = "us-east-1"
     encrypt        = true
     dynamodb_table = "terraform-locks"

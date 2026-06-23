@@ -45,7 +45,7 @@ o11y_ingest_token = "REPLACE_WITH_SYNTHETICS_INGEST_TOKEN"
 # detector_description = "Monitors AWS integration health in Splunk Observability Cloud using native metrics and custom integration inventory data from Synthetics or external poller."
 
 # Tags to apply to the detector (default: empty list)
-# detector_tags = ["aws", "integration-health", "nuskin"]
+# detector_tags = ["aws", "integration-health", "production"]
 
 # Teams authorized to view and edit the detector (default: empty list)
 # detector_teams = ["Platform Team", "SRE Team"]
