@@ -5,6 +5,7 @@ provider "registry.terraform.io/splunk/synthetics" {
   version     = "2.2.0"
   constraints = "~> 2.0"
   hashes = [
+    "h1:PThp188X+h2+IQ3ssBFd3CNp3NRdLtQkYCFIb3ei6zE=",
     "h1:wkKNU4fJxdobsfH/YSxhWbfS5Gn/DMNckN2CZNs+NlQ=",
     "zh:00e377df8079d394af661286fff8af0b57017fa2fbdab3ad02050b23b41b9ef1",
     "zh:0f66c28d26e0447910c008ad8ae729641aa55b16d912b12c1018a37785da8570",
@@ -27,6 +28,7 @@ provider "registry.terraform.io/splunk-terraform/signalfx" {
   version     = "9.30.2"
   constraints = "~> 9.14"
   hashes = [
+    "h1:XhubNr3v7qB/1qTn2U7zJMPxu8RgCQM2omg9jip1z+w=",
     "h1:eRwcdU1jbmslOjJF96gZiQCeodxTzedSINeuv+kqha8=",
     "zh:156d0a89e22f6ea2c3c2da37af3823b353818cbd5c6c54fcd4852d3873c198dd",
     "zh:18758c03372c0acb04e1c093fc3e15e65ee3bb90e26390e4473f0ef5004cecd5",
