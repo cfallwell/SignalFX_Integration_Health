@@ -4,14 +4,17 @@ This module creates a Splunk Synthetics API check that emits custom AWS integrat
 
 ## Overview
 
-The test implements the two-step flow described in `synthetics/README.md`:
+The test implements the two-request flow described in `synthetics/README.md`:
 
-1. **Request 1 — GET /v2/integration**: Fetch all integrations from the Splunk Observability Cloud API
-   - Setup step: Save the response body as `integrationsResponse`
-   - Setup step: Run JavaScript payload builder to parse and transform the response
-   - Validation: Assert HTTP 200 status
-2. **Request 2 — POST /v2/datapoint**: Send the custom datapoint payload to the ingest API
-   - Validation: Assert HTTP 200 status
+1. **Request 1 — GET /v2/integration**: Fetch all integrations from the Splunk Observability Cloud API.
+   - Validation: Assert HTTP 200 status.
+2. **Request 2 — POST /v2/datapoint**: Send the custom datapoint payload to the ingest API.
+   - Setup step (runs BEFORE request 2, with `{{response.body}}` pointing at request 1's body): save the GET response body as `custom.integrationsResponse`.
+   - Setup step: JavaScript reads `custom.integrationsResponse`, transforms it into a SignalFx gauge payload, and returns the JSON string — captured as `custom.metricPayload`.
+   - Configuration: POST body is `{{custom.metricPayload}}`, interpolated at run time.
+   - Validation: Assert HTTP 200 status.
+
+**Important — setup-step semantics in Splunk Synthetics V2:** setup steps run *before* the request they live under, and `{{response.body}}` inside a setup step refers to the *previous* request's response. The save/JS steps therefore live under Request 2 (the POST), not Request 1 (the GET), so they can see Request 1's body. Putting them under Request 1 would crash with "Build metric payload failed" because there is no prior response to save from.
 
 The custom metrics emitted are:
 
