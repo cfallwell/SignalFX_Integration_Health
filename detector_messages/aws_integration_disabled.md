@@ -31,6 +31,7 @@ Primary ID: {{dimensions.primaryId}}
 Primary ID Type: {{dimensions.primaryIdType}}
 
 AWS Integration ID: {{dimensions.integrationId}}
+AWS Integration URL: https://app.<REALM>.signalfx.com/#/integrations/aws/view/{{dimensions.integrationId}}
 AWS Integration Name: {{dimensions.integrationName}}
 AWS Account ID: {{dimensions.awsAccountId}}
 

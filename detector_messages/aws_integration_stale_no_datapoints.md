@@ -28,6 +28,7 @@ State: {{anomalyState}}
 Incident ID: {{incidentId}}
 
 AWS Integration ID: {{dimensions.integrationId}}
+AWS Integration URL: https://app.<REALM>.signalfx.com/#/integrations/aws/view/{{dimensions.integrationId}}
 
 Estimated age of latest AWS datapoint, in minutes: {{inputs.C.value}}
 Configured stale threshold, in minutes: 90

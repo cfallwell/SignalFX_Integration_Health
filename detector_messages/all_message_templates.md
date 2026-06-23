@@ -96,6 +96,7 @@ Primary ID: {{dimensions.primaryId}}
 Primary ID Type: {{dimensions.primaryIdType}}
 
 AWS Integration ID: {{dimensions.integrationId}}
+AWS Integration URL: https://app.<REALM>.signalfx.com/#/integrations/aws/view/{{dimensions.integrationId}}
 AWS Integration Name: {{dimensions.integrationName}}
 AWS Account ID: {{dimensions.awsAccountId}}
 
@@ -154,6 +155,7 @@ State: {{anomalyState}}
 Incident ID: {{incidentId}}
 
 AWS Integration ID: {{dimensions.integrationId}}
+AWS Integration URL: https://app.<REALM>.signalfx.com/#/integrations/aws/view/{{dimensions.integrationId}}
 
 Estimated age of latest AWS datapoint, in minutes: {{inputs.C.value}}
 Configured stale threshold, in minutes: 90
