@@ -157,6 +157,13 @@ API exception signal value over the last 10 minutes: {{inputs.D.value}}
 Important:
 This native org metric does not include integrationId or tokenId. This alert is scoped to the organization, AWS namespace, API method, and exception location rather than to a specific AWS integration.
 
+How to identify the responsible integration:
+1. Open the namespace coverage chart. Sort or filter by namespace = {{dimensions.namespace}} to see every AWS integration that covers this namespace. The integration(s) listed are the candidates responsible for these exceptions.
+   ${signalfx_list_chart.namespace_coverage.url}
+2. Cross-reference with the 'AWS integration auth failure' rule. That rule fires on sf.org.num.awsServiceAuthErrorCount, which DOES carry integrationId and will usually co-fire on the same namespace when the root cause is integration-level (IAM, role trust, external ID).
+3. Browse all AWS integrations in this org:
+   https://app.${var.realm}.signalfx.com/#/integrations/aws
+
 Suggested checks:
 1. Check whether AWS integration auth-failure alerts are firing at the same time.
 2. Check whether AWS integration stale/no-datapoint alerts are firing at the same time.

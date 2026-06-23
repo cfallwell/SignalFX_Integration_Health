@@ -252,6 +252,55 @@ def enabled_value(integration: JsonObj, missing_enabled: str) -> Optional[int]:
     raise ValueError(f"Unexpected missing_enabled mode: {missing_enabled}")
 
 
+def to_aws_namespace(service: Any) -> Optional[str]:
+    """Normalize a Splunk Observability service code into a CloudWatch
+    namespace string of the form 'AWS/<Service>'.
+
+    The /v2/integration response uses values like 'EC2', 'AWS_EC2', or
+    sometimes already 'AWS/EC2'. The native metric
+    sf.org.num.awsServiceCallCountExceptions exposes them in the 'AWS/X'
+    form, so we normalize to match.
+
+    Returns None for empty/garbage input.
+    """
+    if service is None:
+        return None
+    text = str(service).strip()
+    if not text:
+        return None
+    if text.startswith("AWS/"):
+        return text
+    # Strip the common internal prefixes Splunk uses.
+    for prefix in ("AWS_", "AWS"):
+        if text.startswith(prefix):
+            text = text[len(prefix):]
+            break
+    text = text.strip("_/")
+    if not text:
+        return None
+    return f"AWS/{text}"
+
+
+def extract_integration_namespaces(integration: JsonObj) -> List[str]:
+    """Pull AWS namespaces covered by this integration from any of the common
+    fields the /v2/integration response may use, and normalize them.
+    """
+    raw: List[Any] = []
+    for key in ("services", "namespaces", "awsServices"):
+        value = integration.get(key)
+        if isinstance(value, list):
+            raw.extend(value)
+
+    seen = set()
+    out: List[str] = []
+    for item in raw:
+        ns = to_aws_namespace(item)
+        if ns and ns not in seen:
+            seen.add(ns)
+            out.append(ns)
+    return out
+
+
 def safe_dimension(value: Any) -> str:
     text = str(value) if value is not None else "unknown"
     text = text.strip()
@@ -310,6 +359,22 @@ def build_gauge_datapoints(
                     "metric": "custom.aws.integration.enabled",
                     "dimensions": dimensions,
                     "value": enabled,
+                    "timestamp": now_ms,
+                }
+            )
+
+        # Per-namespace coverage. Each (integration, namespace) pair gets a
+        # value=1 datapoint so SignalFlow can join API exceptions
+        # (which carry 'namespace' but no integrationId) back to integrations
+        # via the namespace dimension.
+        for namespace in extract_integration_namespaces(integration):
+            ns_dimensions = dict(dimensions)
+            ns_dimensions["namespace"] = safe_dimension(namespace)
+            gauge.append(
+                {
+                    "metric": "custom.aws.integration.namespace",
+                    "dimensions": ns_dimensions,
+                    "value": 1,
                     "timestamp": now_ms,
                 }
             )

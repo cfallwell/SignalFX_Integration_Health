@@ -144,6 +144,55 @@ function enabledValue(integration) {
   return null;
 }
 
+function toAwsNamespace(service) {
+  if (service === null || service === undefined) {
+    return null;
+  }
+  var text = String(service);
+  text = text.replace(/^\s+|\s+$/g, '');
+  if (!text) {
+    return null;
+  }
+  if (text.indexOf('AWS/') === 0) {
+    return text;
+  }
+  var prefixes = ['AWS_', 'AWS'];
+  for (var i = 0; i < prefixes.length; i++) {
+    if (text.indexOf(prefixes[i]) === 0) {
+      text = text.substring(prefixes[i].length);
+      break;
+    }
+  }
+  text = text.replace(/^[_\/]+|[_\/]+$/g, '');
+  if (!text) {
+    return null;
+  }
+  return 'AWS/' + text;
+}
+
+function extractIntegrationNamespaces(integration) {
+  var fields = ['services', 'namespaces', 'awsServices'];
+  var raw = [];
+  for (var i = 0; i < fields.length; i++) {
+    var value = integration[fields[i]];
+    if (value && Object.prototype.toString.call(value) === '[object Array]') {
+      for (var j = 0; j < value.length; j++) {
+        raw.push(value[j]);
+      }
+    }
+  }
+  var seen = {};
+  var out = [];
+  for (var k = 0; k < raw.length; k++) {
+    var ns = toAwsNamespace(raw[k]);
+    if (ns && !seen[ns]) {
+      seen[ns] = true;
+      out.push(ns);
+    }
+  }
+  return out;
+}
+
 var source = 'synthetic-aws-integration-health';
 
 /*
@@ -213,6 +262,25 @@ for (var i = 0; i < integrations.length; i++) {
       'metric': 'custom.aws.integration.enabled',
       'dimensions': commonDimensions,
       'value': enabled
+    });
+  }
+
+  // Per-namespace coverage. Each (integration, namespace) pair lets the
+  // SignalFlow detector join native API exceptions (which carry namespace
+  // but no integrationId) back to the responsible integration(s).
+  var namespaces = extractIntegrationNamespaces(integration);
+  for (var n = 0; n < namespaces.length; n++) {
+    var nsDimensions = {};
+    for (var key in commonDimensions) {
+      if (Object.prototype.hasOwnProperty.call(commonDimensions, key)) {
+        nsDimensions[key] = commonDimensions[key];
+      }
+    }
+    nsDimensions['namespace'] = namespaces[n];
+    gauge.push({
+      'metric': 'custom.aws.integration.namespace',
+      'dimensions': nsDimensions,
+      'value': 1
     });
   }
 }

@@ -228,6 +228,40 @@ detect(when(D > 0, '2m')).publish(
 
 
 # ============================================================
+# F - Namespace coverage context (does NOT participate in detect())
+# ============================================================
+#
+# Custom metric:
+#   custom.aws.integration.namespace
+#
+# Purpose:
+#   The native API exceptions metric (D) carries 'namespace' but no
+#   integrationId. The custom integration-health producer (Synthetics test
+#   or external poller) emits one datapoint per (integration, namespace) pair
+#   to this metric, with dimensions integrationId, integrationName,
+#   awsAccountId, and namespace. Publishing it here makes it available in
+#   the detector's chart picker and to the companion list chart that the
+#   alert body links to, so a responder can see WHICH integration covers
+#   the affected namespace when an exception alert fires.
+#
+# This signal is intentionally not used in any detect() because we do not
+# want to alert on coverage by itself.
+
+F = data(
+    'custom.aws.integration.namespace',
+    filter=filter('source', custom_metric_source),
+    rollup='latest',
+    extrapolation='last_value',
+    maxExtrapolations=stopped_stream_max_extrapolations,
+    resolution=60000
+).max(
+    by=['integrationId', 'integrationName', 'awsAccountId', 'namespace']
+).publish(
+    label='F'
+)
+
+
+# ============================================================
 # E - Logs stopped by token
 # ============================================================
 #

@@ -5,14 +5,16 @@
       "name": "aws-prod",
       "type": "AWSCloudWatch",
       "enabled": true,
-      "roleArn": "arn:aws:iam::111122223333:role/splunk-o11y"
+      "roleArn": "arn:aws:iam::111122223333:role/splunk-o11y",
+      "services": ["EC2", "S3", "Lambda"]
     },
     {
       "id": "aws-integration-002",
       "name": "aws-dev",
       "type": "AWSCloudWatch",
       "enabled": false,
-      "accountId": "444455556666"
+      "accountId": "444455556666",
+      "namespaces": ["AWS/EKS", "AWS_EC2"]
     },
     {
       "id": "pagerduty-001",
